@@ -45,6 +45,7 @@ jobs:
         run: python attacks/forge_github_predicate.py > forged-predicate.json
 
       - name: "Attestation 2: forged SLSA predicate"
+        continue-on-error: true
         uses: actions/attest@v4
         with:
           subject-path: dist/*.whl
