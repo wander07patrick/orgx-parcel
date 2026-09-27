@@ -1,0 +1,17 @@
+[build-system]
+# flit_core has no dependencies of its own, which keeps the build toolchain
+# (a SLSA "resolved dependency") small, auditable and pinnable by hash.
+requires = ["flit_core >=4.1,<5"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "orgx-parcel"
+version = "0.1.0"
+description = "Parcel-ID toolkit of OrgX, the fictional SME used in the INFO-Y-122 SLSA lab"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = []
+
+[project.scripts]
+orgx-parcel = "orgx_parcel.cli:main"

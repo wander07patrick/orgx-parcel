@@ -1,0 +1,8 @@
+# LAB ONLY - dependency-threat demonstration (never install these in a real project).
+# Old releases with publicly known vulnerabilities. A wheel built with them would
+# still carry perfectly valid SLSA Build provenance: the Build track proves HOW an
+# artifact was built, not whether its ingredients are safe. Detecting this is the
+# job of software composition analysis (pip-audit, OSV-Scanner, Grype, Trivy) and,
+# in the future, of the SLSA Dependency track (built on S2C2F).
+requests==2.19.1
+urllib3==1.24.1

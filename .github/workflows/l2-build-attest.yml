@@ -1,0 +1,56 @@
+# SLSA Build L2 on GitHub
+# - hosted build platform (GitHub-hosted runner)        -> "Hosted"
+# - provenance generated from platform data + signed    -> "Provenance is Authentic"
+#   through Sigstore with the workflow's OIDC identity
+# Not L3: the user-defined build steps run in the SAME job that holds the
+# `id-token: write` permission (see the "[lab probe]" line in the build log).
+name: L2 build and attest
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}   # least privilege: nothing unless a job asks for it
+
+jobs:
+  build-and-attest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read       # checkout
+      id-token: write      # OIDC token -> short-lived Sigstore signing certificate
+      attestations: write  # store the attestation in GitHub's attestation API
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Unit tests
+        run: PYTHONPATH=src python -m unittest discover -s tests -v
+
+      - name: Build (hash-pinned toolchain, reproducible timestamps)
+        run: bash scripts/build.sh
+
+      - name: Attest build provenance (SLSA Provenance v1, signed via Sigstore)
+        id: attest
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/*.whl
+
+      - name: Keep a copy of the Sigstore bundle next to the wheel
+        env:
+          BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+        run: cp "$BUNDLE" dist/provenance.sigstore.json
+
+      - name: Upload wheel, checksums and provenance bundle
+        uses: actions/upload-artifact@v6
+        with:
+          name: orgx-parcel-dist
+          path: dist/
+          if-no-files-found: error

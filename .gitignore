@@ -1,0 +1,15 @@
+.venv-build/
+dist/
+build/
+__pycache__/
+*.pyc
+*.egg-info/
+# local verification leftovers
+*.tampered.whl
+# offline lab: never commit private keys or scratch outputs
+offline-lab/.venv-offline/
+offline-lab/keys/
+offline-lab/work/
+
+# pushed as its own repository
+trusted-builder-repo/

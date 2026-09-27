@@ -1,0 +1,18 @@
+{
+  "_comment": "Consumer-side verification policy (roots of trust + expectations) for the OrgX wheel. Minimum level: L1.",
+  "min_level": 1,
+  "roots_of_trust": [
+    {
+      "builder_id": "https://ci.orgx.example/runners/hosted",
+      "public_key": "keys/platform.pub",
+      "max_level": 2
+    }
+  ],
+  "expectations": {
+    "buildType": "https://orgx.example/buildtypes/python-wheel/v1",
+    "source_repository": "git+https://git.orgx.example/orgx/parcel",
+    "allowed_refs": ["refs/heads/main", "refs/tags/v*"],
+    "workflow": ".ci/release.yml",
+    "externalParameters_allowed_keys": ["repository", "ref", "workflow"]
+  }
+}

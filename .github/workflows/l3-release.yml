@@ -1,0 +1,21 @@
+# SLSA Build L3 pattern on GitHub: the release is produced by a TRUSTED BUILDER,
+# i.e. a reusable workflow kept in a separate, locked-down repository.
+# This caller can only invoke it; it cannot add, remove or change its steps.
+#
+# BEFORE USE: replace OWNER with your GitHub account (see README, step G3).
+name: L3 release (trusted builder)
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  release:
+    permissions:
+      contents: read
+      id-token: write      # granted to the trusted builder's attest job only
+      attestations: write
+    uses: OWNER/orgx-trusted-builder/.github/workflows/build-python-wheel.yml@v1
